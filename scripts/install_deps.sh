@@ -38,7 +38,6 @@ step "0/9" "Pre-flight checks"
 UBUNTU_VER=$(lsb_release -rs 2>/dev/null || echo "unknown")
 if [[ "$UBUNTU_VER" != "22.04" ]]; then
     warn "This script targets Ubuntu 22.04. Detected: $UBUNTU_VER"
-    warn "Proceeding anyway — some packages may differ."
 else
     ok "Ubuntu 22.04 detected"
 fi
@@ -47,28 +46,29 @@ fi
 ARCH=$(dpkg --print-architecture)
 ok "Architecture: $ARCH"
 
-# ── Install curl first so internet check works ────────────────────────────────
-echo -e "  Installing curl for connectivity check..."
-sudo apt-get update -qq 2>&1 | tail -1
-sudo apt-get install -y curl wget 2>&1 >> "$LOG_FILE"
-ok "curl/wget ready"
-
-# Internet check (now curl is guaranteed to exist)
-if ! curl -s --max-time 10 https://packages.ros.org > /dev/null 2>&1; then
-    die "No internet connection detected. Please check your VMware network (use NAT mode)."
+# Internet check using ping (works even without curl)
+if ping -c 1 -W 5 8.8.8.8 &>/dev/null; then
+    ok "Internet connection OK"
+else
+    die "No internet. Fix: VM Settings → Network Adapter → NAT → OK, then retry."
 fi
-ok "Internet connection OK"
 
-# Disk space check (need at least 20 GB free)
+# Disk space check
 FREE_GB=$(df -BG "$HOME" | awk 'NR==2 {print $4}' | tr -d 'G')
 if [[ "$FREE_GB" -lt 20 ]]; then
-    warn "Less than 20 GB free (${FREE_GB} GB). Build may fail — recommend 80+ GB VM disk."
+    warn "Less than 20 GB free (${FREE_GB} GB). Recommend 80+ GB VM disk."
 else
     ok "Disk space: ${FREE_GB} GB free"
 fi
 
 # ── 1. System Base Packages ───────────────────────────────────────────────────
 step "1/9" "Installing system base packages"
+
+sudo apt-get update -qq 2>&1 | tail -1
+
+# Install curl + wget first
+sudo apt-get install -y curl wget 2>&1 >> "$LOG_FILE"
+ok "curl/wget installed"
 
 sudo apt-get install -y \
     git \
@@ -89,9 +89,8 @@ sudo apt-get install -y \
     libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
     2>&1 >> "$LOG_FILE"
 
-# influxdb — try apt, warn if unavailable
 sudo apt-get install -y influxdb influxdb-client 2>&1 >> "$LOG_FILE" \
-    || warn "influxdb not in apt — will be run via Docker instead"
+    || warn "influxdb not in apt — will be available via Docker instead"
 
 ok "System packages installed"
 
@@ -101,33 +100,26 @@ step "2/9" "Installing ROS 2 Humble"
 if command -v ros2 &>/dev/null; then
     ok "ROS 2 already installed — skipping"
 else
-    # Add universe repo
     sudo add-apt-repository universe -y 2>&1 >> "$LOG_FILE"
 
-    # Add ROS 2 GPG key (modern method — no deprecated apt-key)
+    # Modern GPG method (no deprecated apt-key)
     sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key \
         -o /usr/share/keyrings/ros-archive-keyring.gpg
 
-    # Add ROS 2 apt source
     echo "deb [arch=$ARCH signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] \
         http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" \
         | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
 
     sudo apt-get update -qq 2>&1 >> "$LOG_FILE"
-
-    # Install full desktop (includes RViz2, rqt, Gazebo, simulation tools)
     sudo apt-get install -y ros-humble-desktop-full 2>&1 >> "$LOG_FILE"
-
     ok "ROS 2 Humble installed"
 fi
 
-# Source ROS 2 in current shell
 source /opt/ros/humble/setup.bash
 
-# Add to .bashrc permanently
 if ! grep -q "source /opt/ros/humble/setup.bash" ~/.bashrc; then
     echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
-    ok "Added ROS 2 source to ~/.bashrc"
+    ok "Added ROS 2 to ~/.bashrc"
 fi
 
 # ── 3. ROS 2 Packages ────────────────────────────────────────────────────────
@@ -215,14 +207,11 @@ pip3 install \
 
 ok "Python packages installed"
 
-# Verify critical packages
 python3 -c "import casadi; print('    version:', casadi.__version__)" 2>/dev/null \
-    && ok "CasADi OK" || warn "CasADi import failed — MPC planner will use sampling fallback"
-python3 -c "import numpy; print('    version:', numpy.__version__)" 2>/dev/null \
-    && ok "NumPy OK"
+    && ok "CasADi OK" || warn "CasADi not found — MPC will use sampling fallback"
+python3 -c "import numpy" 2>/dev/null && ok "NumPy OK"
 python3 -c "import scipy" 2>/dev/null && ok "SciPy OK"
-python3 -c "import cv2; print('    version:', cv2.__version__)" 2>/dev/null \
-    && ok "OpenCV OK"
+python3 -c "import cv2"   2>/dev/null && ok "OpenCV OK"
 
 # ── 5. Docker ─────────────────────────────────────────────────────────────────
 step "5/9" "Installing Docker + Docker Compose"
@@ -233,7 +222,7 @@ else
     curl -fsSL https://get.docker.com -o /tmp/get-docker.sh
     sudo sh /tmp/get-docker.sh 2>&1 >> "$LOG_FILE"
     sudo usermod -aG docker "$USER"
-    ok "Docker installed  (logout & back in to use without sudo)"
+    ok "Docker installed (logout & back in to use without sudo)"
 fi
 
 if ! docker compose version &>/dev/null 2>&1; then
@@ -246,28 +235,22 @@ step "6/9" "Configuring CAN bus"
 
 for mod in can can_raw can_dev vcan; do
     sudo modprobe $mod 2>/dev/null \
-        && ok "$mod module loaded" \
-        || warn "$mod not available (normal in VM — vcan used for testing)"
+        && ok "$mod loaded" \
+        || warn "$mod not available (normal in VM)"
 done
 
 if ! grep -q "^can$" /etc/modules 2>/dev/null; then
     printf "can\ncan_raw\ncan_dev\n" | sudo tee -a /etc/modules > /dev/null
-    ok "CAN modules persisted in /etc/modules"
 fi
 
-# Virtual CAN interface for testing in VM
-if ip link show vcan0 &>/dev/null 2>&1; then
-    ok "vcan0 already exists"
-else
-    sudo ip link add dev vcan0 type vcan 2>/dev/null \
-        && sudo ip link set up vcan0 \
-        && ok "vcan0 created (use this in VM for CAN testing)" \
-        || warn "vcan0 skipped — real hardware CAN will be used"
-fi
+sudo ip link add dev vcan0 type vcan 2>/dev/null \
+    && sudo ip link set up vcan0 \
+    && ok "vcan0 created for VM testing" \
+    || ok "vcan0 already exists"
 
 sudo tee /etc/systemd/system/agv-can.service > /dev/null <<'CANSVC'
 [Unit]
-Description=AGV CAN Bus Interface Setup
+Description=AGV CAN Bus Interface
 After=network.target
 
 [Service]
@@ -289,18 +272,14 @@ step "7/9" "Initialising rosdep"
 
 if [ ! -f /etc/ros/rosdep/sources.list.d/20-default.list ]; then
     sudo rosdep init 2>&1 >> "$LOG_FILE"
-    ok "rosdep initialised"
-else
-    ok "rosdep already initialised"
 fi
-
 rosdep update 2>&1 >> "$LOG_FILE"
 ok "rosdep updated"
 
 cd "$WORKSPACE_DIR"
 if [ -d src ]; then
     rosdep install --from-paths src --ignore-src -r -y 2>&1 >> "$LOG_FILE" \
-        && ok "Workspace ROS dependencies installed" \
+        && ok "Workspace ROS deps installed" \
         || warn "Some rosdep packages missing — check $LOG_FILE"
 fi
 
@@ -318,22 +297,21 @@ colcon build \
 SETUP_LINE="source $WORKSPACE_DIR/install/setup.bash"
 if ! grep -qF "$SETUP_LINE" ~/.bashrc; then
     echo "$SETUP_LINE" >> ~/.bashrc
-    ok "Added workspace source to ~/.bashrc"
 fi
-
 source "$WORKSPACE_DIR/install/setup.bash" 2>/dev/null || true
+ok "Workspace built and sourced"
 
-# ── 9. Verify Installation ────────────────────────────────────────────────────
+# ── 9. Verify ─────────────────────────────────────────────────────────────────
 step "9/9" "Verifying installation"
 
 echo ""
 echo -e "  ${BOLD}Component Status:${NC}"
-printf "  %-28s" "Ubuntu:";   lsb_release -d | cut -f2
-printf "  %-28s" "ROS 2:";    ros2 --version 2>/dev/null || echo "NOT FOUND"
-printf "  %-28s" "Python:";   python3 --version
-printf "  %-28s" "CasADi:";   python3 -c "import casadi; print(casadi.__version__)" 2>/dev/null || echo "NOT FOUND"
-printf "  %-28s" "OpenCV:";   python3 -c "import cv2; print(cv2.__version__)" 2>/dev/null || echo "NOT FOUND"
-printf "  %-28s" "Docker:";   docker --version 2>/dev/null || echo "NOT FOUND"
+printf "  %-28s" "Ubuntu:";  lsb_release -d | cut -f2
+printf "  %-28s" "ROS 2:";   ros2 --version 2>/dev/null || echo "NOT FOUND"
+printf "  %-28s" "Python:";  python3 --version
+printf "  %-28s" "CasADi:";  python3 -c "import casadi; print(casadi.__version__)" 2>/dev/null || echo "NOT FOUND"
+printf "  %-28s" "OpenCV:";  python3 -c "import cv2; print(cv2.__version__)" 2>/dev/null || echo "NOT FOUND"
+printf "  %-28s" "Docker:";  docker --version 2>/dev/null || echo "NOT FOUND"
 
 echo ""
 echo -e "  ${BOLD}AGV Packages:${NC}"
@@ -344,7 +322,7 @@ if ros2 pkg list 2>/dev/null | grep -q agv; then
         echo -e "  ${GREEN}✔${NC} $pkg"
     done
 else
-    warn "AGV packages not found — check $LOG_FILE for build errors"
+    warn "AGV packages not found — check $LOG_FILE"
 fi
 
 # ── Done ──────────────────────────────────────────────────────────────────────
@@ -356,14 +334,9 @@ echo "╚═══════════════════════�
 echo -e "${NC}"
 echo "  Next steps:"
 echo ""
-echo -e "  ${BOLD}1. Reload terminal:${NC}"
-echo "     source ~/.bashrc"
-echo ""
-echo -e "  ${BOLD}2. Run simulation:${NC}"
-echo "     ros2 launch agv_bringup agv_simulation.launch.py"
-echo ""
-echo -e "  ${BOLD}3. Start full AGV:${NC}"
-echo "     ros2 launch agv_bringup agv_full.launch.py"
+echo -e "  ${BOLD}1. Reload terminal:${NC}  source ~/.bashrc"
+echo -e "  ${BOLD}2. Run simulation:${NC}   ros2 launch agv_bringup agv_simulation.launch.py"
+echo -e "  ${BOLD}3. Start full AGV:${NC}   ros2 launch agv_bringup agv_full.launch.py"
 echo ""
 echo "  Full install log: $LOG_FILE"
 echo ""
