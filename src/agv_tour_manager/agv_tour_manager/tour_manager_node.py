@@ -142,7 +142,11 @@ class TourManagerNode(Node):
         if not self.tour_active:
             return
         if self.behavior_state == 'NEXT_STOP':
-            self.current_idx = (self.current_idx + 1) % len(self.tour_stops) if self.loop_tour else min(self.current_idx + 1, len(self.tour_stops) - 1)
+            next_idx = self.current_idx + 1
+            if self.loop_tour:
+                self.current_idx = next_idx % len(self.tour_stops)
+            else:
+                self.current_idx = min(next_idx, len(self.tour_stops) - 1)
             self._publish_current_stop()
         elif self.behavior_state == 'TOUR_COMPLETE':
             self.get_logger().info('Tour complete!')
