@@ -6,13 +6,6 @@ find_package(ament_cmake_python REQUIRED)
 
 ament_python_install_package(${PROJECT_NAME})
 
-install(PROGRAMS
-  agv_mapping/ndt_mapping_node.py
-  agv_mapping/octomap_node.py
-  agv_mapping/map_server_node.py
-  DESTINATION lib/${PROJECT_NAME}
-)
-
 install(DIRECTORY config
   DESTINATION share/${PROJECT_NAME}
 )

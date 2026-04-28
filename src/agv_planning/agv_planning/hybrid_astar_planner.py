@@ -84,11 +84,9 @@ def _RLR(x: float, y: float, phi: float):
     u1, t1 = _polar(x + math.sin(phi), y + 1 - math.cos(phi))
     if u1 > 4:
         return None
-    u = _mod2pi(2 * math.pi - math.acos((u1 ** 2 - 6) / (2 * u1) + 1 / 2) * 2)
+    u = -2 * math.asin(u1 / 4)
     if math.isnan(u):
         return None
-    # simplified via _LRL reflection
-    u = -2 * math.asin(u1 / 4)
     t = _mod2pi(t1 - math.pi / 2 - u / 2)
     v = _mod2pi(t - phi + u)
     return t, u, v, 'RLR'
@@ -239,6 +237,9 @@ class HybridAStarPlanner(Node):
         self.declare_parameter('reverse_penalty', 5.0)
         self.declare_parameter('rs_goal_dist', 8.0)
         self.declare_parameter('max_iterations', 5000)
+        self.declare_parameter('datum_latitude', 13.0827)
+        self.declare_parameter('datum_longitude', 80.2707)
+        self.declare_parameter('datum_altitude', 0.0)
 
         self.L = self.get_parameter('wheelbase').value
         self.R_min = self.get_parameter('min_turning_radius').value
@@ -277,10 +278,35 @@ class HybridAStarPlanner(Node):
         self.start = (p.position.x, p.position.y, yaw)
 
     def _goal_cb(self, msg: TourStop):
-        # TourStop carries ENU coords in longitude/latitude fields (reused as x/y)
-        self.goal = (float(msg.longitude), float(msg.latitude), 0.0)
+        enu_x, enu_y = self._lla_to_enu(msg.latitude, msg.longitude)
+        self.goal = (enu_x, enu_y, 0.0)
         if self.start is not None:
             self._plan()
+
+    def _lla_to_enu(self, lat_deg, lon_deg, alt=0.0):
+        a = 6378137.0
+        e2 = 0.00669437999014
+        datum_lat = math.radians(self.get_parameter('datum_latitude').value)
+        datum_lon = math.radians(self.get_parameter('datum_longitude').value)
+        datum_alt = self.get_parameter('datum_altitude').value
+
+        def lla_to_ecef(lat, lon, alt_m):
+            N = a / math.sqrt(1 - e2 * math.sin(lat) ** 2)
+            x = (N + alt_m) * math.cos(lat) * math.cos(lon)
+            y = (N + alt_m) * math.cos(lat) * math.sin(lon)
+            z = (N * (1 - e2) + alt_m) * math.sin(lat)
+            return x, y, z
+
+        datum_ecef = lla_to_ecef(datum_lat, datum_lon, datum_alt)
+        pt_ecef = lla_to_ecef(math.radians(lat_deg), math.radians(lon_deg), alt)
+        dx = pt_ecef[0] - datum_ecef[0]
+        dy = pt_ecef[1] - datum_ecef[1]
+        dz = pt_ecef[2] - datum_ecef[2]
+        sla, cla = math.sin(datum_lat), math.cos(datum_lat)
+        slo, clo = math.sin(datum_lon), math.cos(datum_lon)
+        e = -slo * dx + clo * dy
+        n = -sla * clo * dx - sla * slo * dy + cla * dz
+        return e, n
 
     # ---- Collision checking ----
     def _world_to_grid(self, x, y):
