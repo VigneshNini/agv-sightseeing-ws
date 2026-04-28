@@ -1,0 +1,134 @@
+# Tour Stop Configuration for AGV Sightseeing Vehicle
+# Each stop has GPS coordinates, dwell time, and audio commentary file
+
+tour_stops:
+  - stop_id: 1
+    name: "Main Entrance Gate"
+    latitude: 13.0827
+    longitude: 80.2707
+    altitude: 0.0
+    dwell_time: 45.0
+    audio_file: "audio/01_main_entrance.mp3"
+    description: "Welcome to our beautiful sightseeing park. This magnificent gate was built in 1985..."
+    points_of_interest:
+      - "Historic archway"
+      - "Decorative fountains"
+
+  - stop_id: 2
+    name: "Rose Garden"
+    latitude: 13.0835
+    longitude: 80.2715
+    altitude: 0.0
+    dwell_time: 60.0
+    audio_file: "audio/02_rose_garden.mp3"
+    description: "The rose garden features over 500 varieties of roses from around the world..."
+    points_of_interest:
+      - "Heritage rose collection"
+      - "Butterfly garden"
+
+  - stop_id: 3
+    name: "Heritage Museum"
+    latitude: 13.0842
+    longitude: 80.2722
+    altitude: 0.0
+    dwell_time: 90.0
+    audio_file: "audio/03_heritage_museum.mp3"
+    description: "Our heritage museum houses artifacts dating back over 200 years..."
+    points_of_interest:
+      - "Ancient artifacts gallery"
+      - "Photography exhibition"
+
+  - stop_id: 4
+    name: "Panoramic Viewpoint"
+    latitude: 13.0850
+    longitude: 80.2730
+    altitude: 15.0
+    dwell_time: 60.0
+    audio_file: "audio/04_viewpoint.mp3"
+    description: "From this elevated vantage point you can see the entire park and the city skyline..."
+    points_of_interest:
+      - "City skyline view"
+      - "Telescope station"
+
+  - stop_id: 5
+    name: "Botanical Gardens"
+    latitude: 13.0845
+    longitude: 80.2740
+    altitude: 0.0
+    dwell_time: 75.0
+    audio_file: "audio/05_botanical.mp3"
+    description: "The botanical gardens span 5 acres and feature rare plant species from 6 continents..."
+    points_of_interest:
+      - "Tropical greenhouse"
+      - "Medicinal plant section"
+      - "Cactus collection"
+
+  - stop_id: 6
+    name: "Lakeside Pavilion"
+    latitude: 13.0838
+    longitude: 80.2748
+    altitude: 0.0
+    dwell_time: 60.0
+    audio_file: "audio/06_lakeside.mp3"
+    description: "The serene lake pavilion offers stunning reflections and a habitat for migratory birds..."
+    points_of_interest:
+      - "Bird watching station"
+      - "Pedal boat launch"
+
+  - stop_id: 7
+    name: "Amphitheater"
+    latitude: 13.0830
+    longitude: 80.2752
+    altitude: 0.0
+    dwell_time: 45.0
+    audio_file: "audio/07_amphitheater.mp3"
+    description: "The open-air amphitheater hosts cultural performances every weekend..."
+    points_of_interest:
+      - "Stage and seating"
+      - "Cultural exhibits"
+
+  - stop_id: 8
+    name: "Children's Play Zone"
+    latitude: 13.0822
+    longitude: 80.2745
+    altitude: 0.0
+    dwell_time: 45.0
+    audio_file: "audio/08_play_zone.mp3"
+    description: "An interactive play zone with educational exhibits and outdoor games for all ages..."
+    points_of_interest:
+      - "Science discovery center"
+      - "Adventure playground"
+
+  - stop_id: 9
+    name: "Food Court & Rest Area"
+    latitude: 13.0818
+    longitude: 80.2735
+    altitude: 0.0
+    dwell_time: 120.0
+    audio_file: "audio/09_food_court.mp3"
+    description: "Enjoy local cuisine and refreshments at our food court. This is your scheduled rest stop..."
+    points_of_interest:
+      - "Local cuisine stalls"
+      - "Souvenir shop"
+
+  - stop_id: 10
+    name: "Main Entrance Gate (Return)"
+    latitude: 13.0827
+    longitude: 80.2707
+    altitude: 0.0
+    dwell_time: 30.0
+    audio_file: "audio/10_farewell.mp3"
+    description: "Thank you for joining our sightseeing tour. We hope you enjoyed the experience..."
+    points_of_interest:
+      - "Photo opportunity"
+      - "Feedback station"
+
+# Tour settings
+tour_settings:
+  loop_tour: false
+  start_stop_id: 1
+  max_speed_mps: 2.5
+  default_dwell_time: 30.0
+  arrival_threshold_m: 1.5
+  audio_enabled: true
+  language: "en"

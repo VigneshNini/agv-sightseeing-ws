@@ -1,0 +1,124 @@
+# Vehicle Configuration for AGV Sightseeing Vehicle
+# Physical and mechanical parameters
+
+vehicle:
+  name: "AGV Sightseeing Vehicle"
+  model: "AGV-SIGHT-V1"
+  manufacturer: "AGV Systems"
+
+  # ============================================================
+  # Dimensional Parameters
+  # ============================================================
+  dimensions:
+    length: 3.0         # meters (front bumper to rear bumper)
+    width: 1.5          # meters
+    height: 2.2         # meters (including roof)
+    wheelbase: 1.8      # meters (front axle to rear axle)
+    track_width: 1.2    # meters (center of left wheel to center of right)
+    ground_clearance: 0.2  # meters
+
+    # Center of mass
+    com_x: 0.9          # meters from front axle
+    com_y: 0.0
+    com_z: 0.6
+
+    # Turning radius
+    min_turning_radius: 3.5   # meters
+
+  # ============================================================
+  # Steering Parameters (Ackermann)
+  # ============================================================
+  steering:
+    type: "ackermann"
+    max_steering_angle: 35.0     # degrees
+    max_steering_rate: 30.0      # degrees per second
+    steering_ratio: 15.0         # steering wheel turns to wheel angle
+    actuator: "dynamixel_pro"
+    actuator_id: 1
+    center_offset: 0.0           # degrees (trim)
+
+  # ============================================================
+  # Drive Parameters
+  # ============================================================
+  drive:
+    type: "rear_wheel_drive"
+    motor_type: "Roboteq HDC2460"
+    num_motors: 2
+
+    # Speed limits
+    max_speed_forward: 3.0       # m/s
+    max_speed_reverse: 1.0       # m/s
+    max_acceleration: 1.5        # m/s²
+    max_deceleration: 3.0        # m/s² (braking)
+    max_jerk: 2.0                # m/s³
+
+    # Gear / transmission
+    gear_ratio: 20.0
+    wheel_radius: 0.25           # meters
+
+    # CAN bus
+    can_interface: "can0"
+    can_bitrate: 500000
+
+  # ============================================================
+  # Braking System
+  # ============================================================
+  brakes:
+    type: "hydraulic_disc"
+    max_brake_force: 5000.0      # Newtons
+    emergency_brake_decel: 5.0  # m/s²
+
+  # ============================================================
+  # Payload / Capacity
+  # ============================================================
+  capacity:
+    max_passengers: 6
+    max_payload_kg: 600
+
+  # ============================================================
+  # Power System
+  # ============================================================
+  power:
+    battery_type: "LiFePO4"
+    battery_capacity_kwh: 20.0
+    battery_voltage: 48.0        # Volts
+    charging_type: "J1772"
+    low_battery_threshold: 20.0  # percent
+    critical_battery_threshold: 10.0  # percent
+    estimated_range_km: 80.0
+
+  # ============================================================
+  # Dynamics Model
+  # ============================================================
+  dynamics:
+    mass: 800.0              # kg (including battery)
+    inertia_z: 500.0         # kg*m² (yaw)
+    drag_coefficient: 0.35
+    rolling_resistance: 0.015
+    cornering_stiffness_front: 50000.0  # N/rad
+    cornering_stiffness_rear: 60000.0   # N/rad
+
+  # ============================================================
+  # Safety Zones (for obstacle avoidance)
+  # ============================================================
+  safety:
+    emergency_stop_distance: 0.5    # meters
+    warning_distance: 2.0           # meters
+    caution_distance: 5.0           # meters
+    safe_speed_zones:
+      caution: 1.0                  # m/s max in caution zone
+      warning: 0.3                  # m/s max in warning zone
+    side_clearance: 0.3             # meters from vehicle edge
+    rear_clearance: 0.5             # meters
+
+  # ============================================================
+  # Communication
+  # ============================================================
+  communication:
+    can_bus:
+      interface: "can0"
+      bitrate: 500000
+    emergency_stop:
+      topic: "/agv/emergency_stop"
+      hardware_pin: 16
+    heartbeat_rate: 10.0  # Hz

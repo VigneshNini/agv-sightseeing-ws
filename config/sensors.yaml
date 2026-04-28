@@ -1,0 +1,220 @@
+# Sensor Configuration for AGV Sightseeing Vehicle
+
+# ============================================================
+# LiDAR Configuration (Velodyne VLP-16)
+# ============================================================
+lidar:
+  model: "VLP-16"
+  ip_address: "192.168.1.201"
+  port: 2368
+  frame_id: "velodyne"
+  topic: "/velodyne_points"
+
+  # Physical mounting
+  mount:
+    x: 0.5      # meters from base_link
+    y: 0.0
+    z: 1.2
+    roll: 0.0
+    pitch: 0.0
+    yaw: 0.0
+
+  # Scan parameters
+  min_range: 0.3       # meters
+  max_range: 100.0     # meters
+  min_angle: -180.0    # degrees
+  max_angle: 180.0     # degrees
+  rpm: 600
+  return_mode: "Strongest"
+
+# ============================================================
+# Stereo Camera (Intel RealSense D435i)
+# ============================================================
+stereo_camera:
+  model: "RealSense D435i"
+  serial_number: ""
+  frame_id: "camera_link"
+
+  mount:
+    x: 0.6
+    y: 0.0
+    z: 1.0
+    roll: 0.0
+    pitch: 0.0
+    yaw: 0.0
+
+  color:
+    topic: "/camera/color/image_raw"
+    width: 1280
+    height: 720
+    fps: 30
+    format: "bgr8"
+
+  depth:
+    topic: "/camera/depth/image_rect_raw"
+    width: 1280
+    height: 720
+    fps: 30
+    format: "16UC1"
+    min_range: 0.2    # meters
+    max_range: 10.0   # meters
+
+  pointcloud:
+    topic: "/camera/depth/color/points"
+    enabled: true
+
+  imu:
+    topic: "/camera/imu"
+    enabled: true
+
+# ============================================================
+# Front Camera (USB Wide-angle)
+# ============================================================
+front_camera:
+  model: "Logitech BRIO"
+  device: "/dev/video0"
+  frame_id: "front_camera_link"
+  topic: "/agv/front_camera/image_raw"
+
+  mount:
+    x: 0.7
+    y: 0.0
+    z: 1.1
+    roll: 0.0
+    pitch: -5.0   # degrees down
+    yaw: 0.0
+
+  width: 1920
+  height: 1080
+  fps: 30
+  format: "mjpeg"
+
+# ============================================================
+# IMU (VectorNav VN-100)
+# ============================================================
+imu:
+  model: "VectorNav VN-100"
+  port: "/dev/ttyUSB1"
+  baud_rate: 115200
+  frame_id: "imu_link"
+  topic: "/imu/data"
+
+  mount:
+    x: 0.0
+    y: 0.0
+    z: 0.5
+    roll: 0.0
+    pitch: 0.0
+    yaw: 0.0
+
+  update_rate: 100    # Hz
+  orientation_variance: [0.0001, 0.0001, 0.0001]
+  angular_velocity_variance: [0.0001, 0.0001, 0.0001]
+  linear_acceleration_variance: [0.001, 0.001, 0.001]
+
+  # Calibration
+  accel_bias: [0.0, 0.0, 0.0]
+  gyro_bias: [0.0, 0.0, 0.0]
+  magnetic_declination: 0.0
+
+# ============================================================
+# GPS (u-blox ZED-F9P RTK)
+# ============================================================
+gps:
+  model: "u-blox ZED-F9P"
+  port: "/dev/ttyUSB0"
+  baud_rate: 115200
+  frame_id: "gps_link"
+  topic: "/fix"
+
+  mount:
+    x: 0.0
+    y: 0.0
+    z: 1.5
+    roll: 0.0
+    pitch: 0.0
+    yaw: 0.0
+
+  update_rate: 10    # Hz
+  rtk_enabled: true
+  ntrip_server: ""
+  ntrip_port: 2101
+  ntrip_mountpoint: ""
+
+  # Reference datum (local origin)
+  datum:
+    latitude: 13.0827
+    longitude: 80.2707
+    altitude: 0.0
+
+  position_covariance: [0.25, 0.0, 0.0,
+                         0.0, 0.25, 0.0,
+                         0.0, 0.0, 1.0]
+
+# ============================================================
+# Wheel Encoders
+# ============================================================
+encoders:
+  type: "incremental"
+  resolution: 4096      # pulses per revolution
+  topic: "/agv/encoders"
+
+  left_front:
+    port: "CAN:0x01"
+    direction: 1
+
+  right_front:
+    port: "CAN:0x02"
+    direction: -1
+
+  left_rear:
+    port: "CAN:0x03"
+    direction: 1
+
+  right_rear:
+    port: "CAN:0x04"
+    direction: -1
+
+# ============================================================
+# Bumper Sensors
+# ============================================================
+bumper:
+  front:
+    topic: "/agv/bumper/front"
+    gpio_pin: 17
+
+  rear:
+    topic: "/agv/bumper/rear"
+    gpio_pin: 18
+
+# ============================================================
+# Ultrasonic Sensors
+# ============================================================
+ultrasonic:
+  enabled: true
+  topic: "/agv/ultrasonic"
+
+  sensors:
+    - id: 0
+      location: "front_left"
+      gpio_trigger: 20
+      gpio_echo: 21
+      max_range: 4.0
+
+    - id: 1
+      location: "front_center"
+      gpio_trigger: 22
+      gpio_echo: 23
+      max_range: 4.0
+
+    - id: 2
+      location: "front_right"
+      gpio_trigger: 24
+      gpio_echo: 25
+      max_range: 4.0
+
+    - id: 3
+      location: "rear_center"
+      gpio_trigger: 26
+      gpio_echo: 27
+      max_range: 4.0

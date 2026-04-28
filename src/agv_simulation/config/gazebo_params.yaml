@@ -1,0 +1,56 @@
+# Gazebo Simulation Parameters for AGV Sightseeing Vehicle
+
+gazebo:
+  ros__parameters:
+    publish_rate: 50.0
+    joint_state_pub_rate: 50.0
+
+agv_controller:
+  ros__parameters:
+    wheel_separation: 0.8
+    wheel_radius: 0.25
+    publish_rate: 50.0
+    odom_frame_id: odom
+    base_frame_id: base_link
+    cmd_vel_timeout: 0.5
+    linear:
+      x:
+        has_velocity_limits: true
+        max_velocity: 3.0
+        min_velocity: -0.5
+        has_acceleration_limits: true
+        max_acceleration: 1.5
+        max_deceleration: 2.0
+    angular:
+      z:
+        has_velocity_limits: true
+        max_velocity: 1.0
+        has_acceleration_limits: true
+        max_acceleration: 1.5
+
+velodyne_sim:
+  ros__parameters:
+    organize_cloud: false
+    min_range: 0.4
+    max_range: 50.0
+    noise: 0.008
+    gpu: false
+
+imu_sim:
+  ros__parameters:
+    topic_name: /imu/data
+    frame_name: imu_link
+    update_rate: 100.0
+    gaussian_noise: 0.01
+    accel_gaussian_noise: 0.001
+
+gps_sim:
+  ros__parameters:
+    topic_name: /fix
+    frame_name: gps_link
+    update_rate: 10.0
+    reference_latitude: 13.0827
+    reference_longitude: 80.2707
+    reference_altitude: 0.0
+    position_noise_std: 0.5
+    velocity_noise_std: 0.05

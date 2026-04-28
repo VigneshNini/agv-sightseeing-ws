@@ -1,0 +1,5 @@
+int32 stop_id
+string stop_name
+---
+bool success
+string message

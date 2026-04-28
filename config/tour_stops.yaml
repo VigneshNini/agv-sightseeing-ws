@@ -1,0 +1,40 @@
+tour_stops:
+  - stop_id: 0
+    name: "Entrance Gate"
+    latitude: 0.0
+    longitude: 0.0
+    dwell_time: 30.0
+    audio_file: "entrance.mp3"
+    description: "Welcome to the Heritage Sightseeing Park!"
+
+  - stop_id: 1
+    name: "Historic Fountain"
+    latitude: 20.0
+    longitude: 15.0
+    dwell_time: 45.0
+    audio_file: "fountain.mp3"
+    description: "Built in 1824, this fountain is a city landmark."
+
+  - stop_id: 2
+    name: "Rose Garden"
+    latitude: 40.0
+    longitude: 10.0
+    dwell_time: 60.0
+    audio_file: "rose_garden.mp3"
+    description: "500+ rose varieties from 45 countries bloom here year-round."
+
+  - stop_id: 3
+    name: "Art Museum"
+    latitude: 50.0
+    longitude: 30.0
+    dwell_time: 90.0
+    audio_file: "museum.mp3"
+    description: "One of Asia's finest modern and contemporary art collections."
+
+  - stop_id: 4
+    name: "Viewpoint Terrace"
+    latitude: 30.0
+    longitude: 50.0
+    dwell_time: 60.0
+    audio_file: "viewpoint.mp3"
+    description: "360-degree panoramic views of the park and city skyline."
