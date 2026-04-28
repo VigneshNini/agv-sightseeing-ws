@@ -171,9 +171,6 @@
     </model>
 
     <!-- Trees (scattered throughout park) -->
-    <xacro:macro name="tree" params="name px py" xmlns:xacro="http://www.ros.org/wiki/xacro">
-    </xacro:macro>
-
     <model name="tree_01">
       <static>true</static><pose>5 10 1.5 0 0 0</pose>
       <link name="trunk"><visual name="v"><geometry><cylinder><radius>0.2</radius><length>3.0</length></cylinder></geometry><material><ambient>0.4 0.25 0.1 1</ambient></material></visual><collision name="c"><geometry><cylinder><radius>0.2</radius><length>3.0</length></cylinder></geometry></collision><inertial><mass>100</mass></inertial></link>
