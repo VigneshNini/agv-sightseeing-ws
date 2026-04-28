@@ -104,9 +104,10 @@ class LidarOdometryNode(Node):
             self.prev_cloud = pts
             return
         T = self._icp_2d(pts, self.prev_cloud)
-        dx = T[0, 2]
-        dy = T[1, 2]
-        dtheta = math.atan2(T[1, 0], T[0, 0])
+        # T maps current→previous, so negate to get forward motion
+        dx = -T[0, 2]
+        dy = -T[1, 2]
+        dtheta = -math.atan2(T[1, 0], T[0, 0])
         self.x += dx * math.cos(self.yaw) - dy * math.sin(self.yaw)
         self.y += dx * math.sin(self.yaw) + dy * math.cos(self.yaw)
         self.yaw += dtheta
@@ -132,7 +133,7 @@ class LidarOdometryNode(Node):
         t = TransformStamped()
         t.header.stamp = stamp
         t.header.frame_id = 'odom'
-        t.child_frame_id = 'lidar_odom'
+        t.child_frame_id = 'base_link'
         t.transform.translation.x = self.x
         t.transform.translation.y = self.y
         t.transform.rotation.w = cy
