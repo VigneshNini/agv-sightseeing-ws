@@ -29,7 +29,7 @@ tour_stops:
     longitude: 30.0
     dwell_time: 90.0
     audio_file: "museum.mp3"
-    description: "One of Asia finest modern and contemporary art collections."
+    description: "One of Asia's finest modern and contemporary art collections."
 
   - stop_id: 4
     name: "Viewpoint Terrace"
