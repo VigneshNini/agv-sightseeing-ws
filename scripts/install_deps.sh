@@ -1,152 +1,379 @@
 #!/usr/bin/env bash
-# install_deps.sh — Full dependency installation for AGV Sightseeing Vehicle
+# =============================================================================
+#  AGV Sightseeing Vehicle — Full Installation Script
+#  Tested on: Ubuntu 22.04.3 LTS (VMware / Native / Jetson)
+#  Usage:
+#    chmod +x install_deps.sh
+#    ./install_deps.sh
+# =============================================================================
 set -euo pipefail
+
+# ── Colours ──────────────────────────────────────────────────────────────────
+RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
+CYAN='\033[0;36m'; BOLD='\033[1m'; NC='\033[0m'
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORKSPACE_DIR="$(dirname "$SCRIPT_DIR")"
+LOG_FILE="$HOME/agv_install.log"
 
-echo "=============================================="
-echo "AGV Sightseeing Vehicle - Dependency Installer"
-echo "=============================================="
+step()  { echo -e "\n${CYAN}${BOLD}[$1]${NC} $2"; }
+ok()    { echo -e "  ${GREEN}✔${NC} $1"; }
+warn()  { echo -e "  ${YELLOW}⚠${NC}  $1"; }
+die()   { echo -e "  ${RED}✘ ERROR:${NC} $1"; exit 1; }
 
-# Check Ubuntu version
-if [[ "$(lsb_release -rs)" != "22.04" ]]; then
-    echo "WARNING: This script is tested on Ubuntu 22.04 (ROS 2 Humble)"
+echo -e "${BOLD}"
+echo "╔══════════════════════════════════════════════════════╗"
+echo "║   AGV Sightseeing Vehicle — Complete Installer       ║"
+echo "║   Ubuntu 22.04 LTS + ROS 2 Humble + All Deps        ║"
+echo "╚══════════════════════════════════════════════════════╝"
+echo -e "${NC}"
+echo "  Log file: $LOG_FILE"
+echo "  Workspace: $WORKSPACE_DIR"
+echo ""
+
+# ── Pre-flight checks ─────────────────────────────────────────────────────────
+step "0/9" "Pre-flight checks"
+
+# Ubuntu version check
+UBUNTU_VER=$(lsb_release -rs 2>/dev/null || echo "unknown")
+if [[ "$UBUNTU_VER" != "22.04" ]]; then
+    warn "This script targets Ubuntu 22.04. Detected: $UBUNTU_VER"
+    warn "Proceeding anyway — some packages may differ."
+else
+    ok "Ubuntu 22.04 detected"
 fi
 
-# -------------------------------------------------------
-# System dependencies
-# -------------------------------------------------------
-echo "[1/6] Installing system dependencies..."
-sudo apt-get update -qq
+# Architecture
+ARCH=$(dpkg --print-architecture)
+ok "Architecture: $ARCH"
+
+# Internet check
+if ! curl -s --max-time 5 https://packages.ros.org > /dev/null; then
+    die "No internet connection detected. Please check your network."
+fi
+ok "Internet connection OK"
+
+# Disk space check (need at least 20 GB free)
+FREE_GB=$(df -BG "$HOME" | awk 'NR==2 {print $4}' | tr -d 'G')
+if [[ "$FREE_GB" -lt 20 ]]; then
+    warn "Less than 20 GB free ($FREE_GB GB). Build may fail. Recommend 80+ GB."
+else
+    ok "Disk space: ${FREE_GB} GB free"
+fi
+
+# ── 1. System Base Packages ───────────────────────────────────────────────────
+step "1/9" "Installing system base packages"
+
+sudo apt-get update -qq 2>&1 | tail -1
 sudo apt-get install -y \
-    curl wget git build-essential cmake \
-    python3-pip python3-dev python3-venv \
-    python3-colcon-common-extensions \
-    libeigen3-dev libpcl-dev \
+    curl wget git \
+    build-essential cmake ninja-build \
+    software-properties-common \
+    lsb-release gnupg2 \
+    python3-pip python3-dev python3-venv python3-setuptools python3-wheel \
+    libeigen3-dev \
+    libpcl-dev \
     libopencv-dev python3-opencv \
     portaudio19-dev libsndfile1-dev \
-    can-utils iproute2 \
-    libgpiod-dev \
-    influxdb influxdb-client \
+    can-utils iproute2 net-tools \
+    htop tmux nano vim \
+    libusb-1.0-0-dev \
     mosquitto mosquitto-clients \
-    nginx
+    influxdb influxdb-client \
+    nginx \
+    v4l-utils \
+    libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
+    2>&1 >> "$LOG_FILE"
+ok "System packages installed"
 
-# -------------------------------------------------------
-# ROS 2 Humble
-# -------------------------------------------------------
-echo "[2/6] Installing ROS 2 Humble..."
-if ! command -v ros2 &> /dev/null; then
-    sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | \
-        sudo apt-key add -
-    sudo sh -c 'echo "deb [arch=$(dpkg --print-architecture)] \
-        http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" > \
-        /etc/apt/sources.list.d/ros2-latest.list'
-    sudo apt-get update -qq
-    sudo apt-get install -y ros-humble-desktop
+# ── 2. ROS 2 Humble ──────────────────────────────────────────────────────────
+step "2/9" "Installing ROS 2 Humble"
+
+if command -v ros2 &>/dev/null; then
+    ok "ROS 2 already installed — skipping"
 else
-    echo "  ROS 2 Humble already installed"
+    # Add universe repo
+    sudo add-apt-repository universe -y 2>&1 >> "$LOG_FILE"
+
+    # Add ROS 2 GPG key (correct modern method — no deprecated apt-key)
+    sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key \
+        -o /usr/share/keyrings/ros-archive-keyring.gpg
+
+    # Add ROS 2 apt source
+    echo "deb [arch=$ARCH signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] \
+        http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" \
+        | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+
+    sudo apt-get update -qq 2>&1 >> "$LOG_FILE"
+
+    # Install full desktop (includes RViz2, rqt, simulation tools)
+    sudo apt-get install -y ros-humble-desktop-full 2>&1 >> "$LOG_FILE"
+
+    ok "ROS 2 Humble installed"
 fi
 
-# -------------------------------------------------------
-# ROS 2 packages
-# -------------------------------------------------------
-echo "[3/6] Installing ROS 2 packages..."
+# Source ROS 2 in current shell
+source /opt/ros/humble/setup.bash
+
+# Add to .bashrc permanently
+if ! grep -q "source /opt/ros/humble/setup.bash" ~/.bashrc; then
+    echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
+    ok "Added ROS 2 source to ~/.bashrc"
+fi
+
+# ── 3. ROS 2 Packages ────────────────────────────────────────────────────────
+step "3/9" "Installing ROS 2 packages"
+
 sudo apt-get install -y \
     ros-humble-tf2-ros \
+    ros-humble-tf2-tools \
     ros-humble-tf2-geometry-msgs \
+    ros-humble-tf2-sensor-msgs \
     ros-humble-nav2-msgs \
+    ros-humble-nav2-bringup \
+    ros-humble-nav2-map-server \
+    ros-humble-nav2-amcl \
+    ros-humble-nav2-lifecycle-manager \
     ros-humble-sensor-msgs \
     ros-humble-geometry-msgs \
     ros-humble-nav-msgs \
+    ros-humble-std-msgs \
+    ros-humble-std-srvs \
     ros-humble-pcl-ros \
     ros-humble-pcl-conversions \
     ros-humble-robot-state-publisher \
     ros-humble-joint-state-publisher \
+    ros-humble-joint-state-publisher-gui \
     ros-humble-xacro \
     ros-humble-rviz2 \
-    ros-humble-gazebo-ros-pkgs \
-    ros-humble-gazebo-plugins \
     ros-humble-ros2-control \
     ros-humble-ros2-controllers \
+    ros-humble-gazebo-ros-pkgs \
+    ros-humble-gazebo-plugins \
+    ros-humble-gazebo-ros2-control \
     ros-humble-velodyne \
     ros-humble-velodyne-pointcloud \
+    ros-humble-velodyne-laserscan \
     ros-humble-joy \
     ros-humble-teleop-twist-joy \
-    python3-colcon-common-extensions
+    ros-humble-teleop-twist-keyboard \
+    ros-humble-robot-localization \
+    ros-humble-imu-tools \
+    ros-humble-nmea-msgs \
+    ros-humble-gps-msgs \
+    ros-humble-rosbridge-server \
+    ros-humble-rosbridge-suite \
+    ros-humble-web-video-server \
+    ros-humble-octomap-ros \
+    ros-humble-octomap-msgs \
+    ros-humble-slam-toolbox \
+    python3-colcon-common-extensions \
+    python3-rosdep \
+    python3-vcstool \
+    2>&1 >> "$LOG_FILE"
+ok "ROS 2 packages installed"
 
-# -------------------------------------------------------
-# Python dependencies
-# -------------------------------------------------------
-echo "[4/6] Installing Python dependencies..."
-pip3 install --upgrade pip
+# ── 4. Python Dependencies ────────────────────────────────────────────────────
+step "4/9" "Installing Python dependencies"
+
+pip3 install --upgrade pip setuptools wheel 2>&1 >> "$LOG_FILE"
+
 pip3 install \
-    numpy scipy \
+    numpy==1.24.4 \
+    scipy \
     casadi \
     filterpy \
     scikit-learn \
+    matplotlib \
+    pandas \
     ultralytics \
-    opencv-python \
+    opencv-python-headless \
     open3d \
     pyserial \
     python-can \
     influxdb-client \
     websockets \
     aiohttp \
+    aiofiles \
     pyyaml \
     transforms3d \
     pyaudio \
     pydub \
-    RPi.GPIO \
-    pyproj
+    pyproj \
+    utm \
+    smbus2 \
+    dynamixel-sdk \
+    2>&1 >> "$LOG_FILE"
 
-# -------------------------------------------------------
-# CAN bus setup
-# -------------------------------------------------------
-echo "[5/6] Setting up CAN bus..."
-if ! grep -q "can" /etc/modules; then
-    echo "can" | sudo tee -a /etc/modules
-    echo "can_raw" | sudo tee -a /etc/modules
-    echo "can_dev" | sudo tee -a /etc/modules
+ok "Python packages installed"
+
+# Verify critical packages
+python3 -c "import casadi; print('  CasADi:', casadi.__version__)" 2>/dev/null \
+    && ok "CasADi OK" || warn "CasADi import failed — MPC planner will use fallback"
+python3 -c "import numpy; print('  NumPy:', numpy.__version__)" 2>/dev/null \
+    && ok "NumPy OK"
+python3 -c "import scipy" 2>/dev/null \
+    && ok "SciPy OK"
+python3 -c "import cv2; print('  OpenCV:', cv2.__version__)" 2>/dev/null \
+    && ok "OpenCV OK"
+
+# ── 5. Docker (optional, for dashboard services) ─────────────────────────────
+step "5/9" "Installing Docker + Docker Compose"
+
+if command -v docker &>/dev/null; then
+    ok "Docker already installed — skipping"
+else
+    curl -fsSL https://get.docker.com -o /tmp/get-docker.sh 2>/dev/null
+    sudo sh /tmp/get-docker.sh 2>&1 >> "$LOG_FILE"
+    sudo usermod -aG docker "$USER"
+    ok "Docker installed (re-login needed for group membership)"
 fi
 
-sudo modprobe can can_raw can_dev 2>/dev/null || true
+# Docker Compose v2
+if ! docker compose version &>/dev/null 2>&1; then
+    sudo apt-get install -y docker-compose-plugin 2>&1 >> "$LOG_FILE"
+fi
+ok "Docker Compose OK"
 
-# Create systemd service for CAN bus
-sudo tee /etc/systemd/system/agv-can.service > /dev/null <<'EOF'
+# ── 6. CAN Bus Kernel Modules ─────────────────────────────────────────────────
+step "6/9" "Configuring CAN bus kernel modules"
+
+# Load modules now
+for mod in can can_raw can_dev vcan; do
+    sudo modprobe $mod 2>/dev/null && ok "$mod loaded" || warn "$mod not available (OK in VM)"
+done
+
+# Persist across reboots
+if ! grep -q "^can$" /etc/modules 2>/dev/null; then
+    printf "can\ncan_raw\ncan_dev\n" | sudo tee -a /etc/modules > /dev/null
+    ok "CAN modules added to /etc/modules"
+fi
+
+# Virtual CAN for testing (useful in VM)
+if ip link show vcan0 &>/dev/null 2>&1; then
+    ok "vcan0 already exists"
+else
+    sudo ip link add dev vcan0 type vcan 2>/dev/null \
+        && sudo ip link set up vcan0 \
+        && ok "vcan0 (virtual CAN) created for testing" \
+        || warn "vcan0 not available — hardware CAN only"
+fi
+
+# CAN systemd service (for real hardware)
+sudo tee /etc/systemd/system/agv-can.service > /dev/null <<'CANSVC'
 [Unit]
-Description=AGV CAN Bus Setup
+Description=AGV CAN Bus Interface Setup
 After=network.target
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/sbin/ip link set can0 up type can bitrate 500000
-ExecStop=/sbin/ip link set can0 down
+ExecStart=/bin/bash -c '/sbin/ip link set can0 up type can bitrate 500000 || true'
+ExecStop=/bin/bash -c '/sbin/ip link set can0 down || true'
 
 [Install]
 WantedBy=multi-user.target
-EOF
+CANSVC
 
 sudo systemctl daemon-reload
 sudo systemctl enable agv-can.service 2>/dev/null || true
+ok "CAN bus systemd service installed"
 
-# -------------------------------------------------------
-# Build workspace
-# -------------------------------------------------------
-echo "[6/6] Building ROS 2 workspace..."
-source /opt/ros/humble/setup.bash
+# ── 7. rosdep init & update ───────────────────────────────────────────────────
+step "7/9" "Initialising rosdep"
+
+if [ ! -f /etc/ros/rosdep/sources.list.d/20-default.list ]; then
+    sudo rosdep init 2>&1 >> "$LOG_FILE"
+    ok "rosdep initialised"
+else
+    ok "rosdep already initialised"
+fi
+
+rosdep update 2>&1 >> "$LOG_FILE"
+ok "rosdep updated"
+
+# Install workspace ROS deps
 cd "$WORKSPACE_DIR"
-colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
+if [ -d src ]; then
+    rosdep install --from-paths src --ignore-src -r -y 2>&1 >> "$LOG_FILE" \
+        && ok "Workspace ROS dependencies installed" \
+        || warn "Some rosdep packages missing — check $LOG_FILE"
+fi
+
+# ── 8. Build the AGV Workspace ────────────────────────────────────────────────
+step "8/9" "Building AGV workspace"
+
+cd "$WORKSPACE_DIR"
+source /opt/ros/humble/setup.bash
+
+colcon build \
+    --symlink-install \
+    --cmake-args -DCMAKE_BUILD_TYPE=Release \
+    2>&1 | tee -a "$LOG_FILE" | grep -E "(Starting|Finished|Failed|ERROR)" || true
+
+# Source workspace
+SETUP_LINE="source $WORKSPACE_DIR/install/setup.bash"
+if ! grep -qF "$SETUP_LINE" ~/.bashrc; then
+    echo "$SETUP_LINE" >> ~/.bashrc
+    ok "Added workspace source to ~/.bashrc"
+fi
+
+source "$WORKSPACE_DIR/install/setup.bash" 2>/dev/null || true
+
+# ── 9. Verify Installation ────────────────────────────────────────────────────
+step "9/9" "Verifying installation"
 
 echo ""
-echo "=============================================="
-echo "Installation complete!"
+echo -e "  ${BOLD}Component Verification:${NC}"
+printf "  %-30s" "Ubuntu version:"
+lsb_release -d | cut -f2
+
+printf "  %-30s" "ROS 2 version:"
+ros2 --version 2>/dev/null || echo "NOT FOUND"
+
+printf "  %-30s" "Python version:"
+python3 --version
+
+printf "  %-30s" "Colcon:"
+colcon version-check 2>/dev/null | head -1 || echo "OK"
+
+printf "  %-30s" "CasADi:"
+python3 -c "import casadi; print(casadi.__version__)" 2>/dev/null || echo "NOT FOUND"
+
+printf "  %-30s" "OpenCV:"
+python3 -c "import cv2; print(cv2.__version__)" 2>/dev/null || echo "NOT FOUND"
+
+printf "  %-30s" "Docker:"
+docker --version 2>/dev/null || echo "NOT FOUND"
+
 echo ""
-echo "To use the workspace:"
-echo "  source /opt/ros/humble/setup.bash"
-echo "  source ${WORKSPACE_DIR}/install/setup.bash"
+echo -e "  ${BOLD}AGV Packages:${NC}"
+source /opt/ros/humble/setup.bash 2>/dev/null
+source "$WORKSPACE_DIR/install/setup.bash" 2>/dev/null || true
+ros2 pkg list 2>/dev/null | grep agv | while read pkg; do
+    echo -e "  ${GREEN}✔${NC} $pkg"
+done || warn "AGV packages not found — build may have failed, check $LOG_FILE"
+
+# ── Done ──────────────────────────────────────────────────────────────────────
 echo ""
-echo "To start the AGV:"
-echo "  ./scripts/start_agv.sh"
-echo "=============================================="
+echo -e "${GREEN}${BOLD}"
+echo "╔══════════════════════════════════════════════════════╗"
+echo "║         ✔  Installation Complete!                   ║"
+echo "╚══════════════════════════════════════════════════════╝"
+echo -e "${NC}"
+echo "  Next steps:"
+echo ""
+echo -e "  ${BOLD}1. Reload your terminal:${NC}"
+echo "     source ~/.bashrc"
+echo ""
+echo -e "  ${BOLD}2. Launch simulation:${NC}"
+echo "     ros2 launch agv_bringup agv_simulation.launch.py"
+echo ""
+echo -e "  ${BOLD}3. Launch full AGV system:${NC}"
+echo "     ros2 launch agv_bringup agv_full.launch.py"
+echo ""
+echo -e "  ${BOLD}4. Or use the start script:${NC}"
+echo "     ./scripts/start_agv.sh"
+echo ""
+echo "  Full install log: $LOG_FILE"
+echo ""
