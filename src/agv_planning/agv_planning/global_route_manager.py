@@ -70,7 +70,7 @@ class GlobalRouteManager(Node):
             if stop['stop_id'] == request.stop_id:
                 self.current_stop_idx = i
                 response.success = True
-                response.message = f'Set to stop: {stop["name"]}''
+                response.message = f'Set to stop: {stop["name"]}'
                 self._publish_current_stop()
                 return response
         response.success = False

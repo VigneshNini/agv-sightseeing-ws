@@ -135,7 +135,7 @@ class TourManagerNode(Node):
         if audio.data:
             self.audio_pub.publish(audio)
         display = String()
-        display.data = f'Stop {self.current_idx+1}/{len(self.tour_stops)}: {s["name"]}\n{s.get("description", "")}''
+        display.data = f'Stop {self.current_idx+1}/{len(self.tour_stops)}: {s["name"]}\n{s.get("description", "")}'
         self.display_pub.publish(display)
 
     def manage_tour(self):

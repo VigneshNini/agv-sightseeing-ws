@@ -153,9 +153,11 @@ function updateObstacles() {
     return;
   }
   alertDiv.classList.remove('hidden');
-  listDiv.innerHTML = obs.slice(0, 5).map(o =>
-    `<div>ID:${o.id} ${o.type} @ (${o.x}, ${o.y})m</div>`
-  ).join('');
+  listDiv.replaceChildren(...obs.slice(0, 5).map(o => {
+    const div = document.createElement('div');
+    div.textContent = `ID:${Number(o.id)} ${String(o.type)} @ (${Number(o.x).toFixed(1)}, ${Number(o.y).toFixed(1)})m`;
+    return div;
+  }));
 }
 
 function updateEmergency() {
