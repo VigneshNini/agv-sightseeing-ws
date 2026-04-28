@@ -1,0 +1,65 @@
+# NDT Mapping Parameters for AGV Sightseeing Vehicle
+
+ndt_mapping_node:
+  ros__parameters:
+    # NDT resolution and matching
+    ndt_resolution: 1.0
+    ndt_step_size: 0.1
+    ndt_epsilon: 0.01
+    ndt_max_iterations: 30
+    ndt_transformation_epsilon: 0.01
+
+    # Input filtering
+    voxel_leaf_size: 0.2
+    min_scan_range: 0.5
+    max_scan_range: 50.0
+    min_add_scan_shift: 1.0
+
+    # Map parameters
+    map_frame: map
+    base_frame: base_link
+    lidar_frame: velodyne
+
+    # Map saving
+    map_save_path: /tmp/agv_ndt_map
+    map_save_interval: 100
+
+    # Initial pose
+    initial_x: 0.0
+    initial_y: 0.0
+    initial_z: 0.0
+    initial_roll: 0.0
+    initial_pitch: 0.0
+    initial_yaw: 0.0
+
+octomap_node:
+  ros__parameters:
+    # OctoMap parameters
+    resolution: 0.1
+    frame_id: map
+    base_frame_id: base_link
+    height_map: true
+    colored_map: false
+    color_factor: 0.8
+
+    # Sensor model
+    sensor_model_max_range: -1.0
+    sensor_model_hit: 0.7
+    sensor_model_miss: 0.4
+    sensor_model_min: 0.12
+    sensor_model_max: 0.97
+
+    # Compression
+    compress_map: true
+    incremental_2D_projection: false
+
+    # Filters
+    pointcloud_min_z: -0.5
+    pointcloud_max_z: 3.0
+    occupancy_min_z: -0.5
+    occupancy_max_z: 3.0
+    filter_speckles: false
+    filter_ground: false
+    ground_filter_distance: 0.04
+    ground_filter_angle: 0.15
+    ground_filter_plane_distance: 0.07

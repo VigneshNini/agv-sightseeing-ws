@@ -1,0 +1,17 @@
+# Dashboard container — Node.js web server for AGV web UI
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install http-server for serving static files
+RUN npm install -g http-server
+
+# Copy dashboard files
+COPY src/agv_dashboard/dashboard /app/dashboard
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD wget -q --spider http://localhost:8080 || exit 1
+
+CMD ["http-server", "/app/dashboard", "-p", "8080", "--cors", "-c-1"]

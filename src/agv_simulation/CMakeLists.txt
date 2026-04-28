@@ -3,7 +3,7 @@ project(agv_simulation)
 
 find_package(ament_cmake REQUIRED)
 
-install(DIRECTORY urdf worlds launch
+install(DIRECTORY urdf worlds launch config
   DESTINATION share/${PROJECT_NAME}
 )
 

@@ -12,7 +12,7 @@ install(PROGRAMS
   DESTINATION lib/${PROJECT_NAME}
 )
 
-install(DIRECTORY dashboard
+install(DIRECTORY dashboard grafana
   DESTINATION share/${PROJECT_NAME}
 )
 

@@ -1,0 +1,31 @@
+# Perception GPU container — CUDA + PyTorch + Ultralytics YOLOv8
+FROM nvidia/cuda:12.1.0-cudnn8-runtime-ubuntu22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
+
+# System dependencies
+RUN apt-get update && apt-get install -y \
+    python3 python3-pip python3-dev \
+    libglib2.0-0 libsm6 libxext6 libxrender-dev \
+    libopencv-dev python3-opencv \
+    && rm -rf /var/lib/apt/lists/*
+
+# Python dependencies
+RUN pip3 install --no-cache-dir \
+    torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 \
+    ultralytics \
+    opencv-python-headless \
+    numpy \
+    scipy \
+    open3d \
+    pillow
+
+# Copy perception package
+WORKDIR /workspace
+COPY src/agv_perception /workspace/agv_perception
+
+# Pre-download YOLOv8 weights
+RUN python3 -c "from ultralytics import YOLO; YOLO('yolov8n.pt')" || true
+
+CMD ["python3", "-m", "agv_perception.camera_perception_node"]
