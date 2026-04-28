@@ -7,14 +7,14 @@ A production-grade autonomous sightseeing vehicle platform built on **ROS 2 Humb
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                    AGV Sightseeing Vehicle Stack                │
-├──────────────┬──────────────┬──────────────┬───────────────────┤
-│ Localization │  Perception  │   Planning   │      Safety       │
-│  UKF (15DOF) │ LiDAR Clust │  Hybrid A*   │  Safety Arbiter   │
-│  GPS ENU     │ SORT Tracker │  MPC Planner │  E-Stop (GPIO)    │
-│  Wheel Odom  │ Lane Detect  │  Behavior SM │  Watchdog         │
-│  LiDAR ICP   │ RANSAC Gnd  │  Vel Profile │  Collision Mon    │
-├──────────────┴──────────────┴──────────────┴───────────────────┤
-│   Control: LQR + CAN Bus + PID Motors + Steering Controller    │
+├──────────────┬──────────────┬──────────────┬────────────────────┤
+│ Localization │  Perception  │   Planning   │      Safety        │
+│  UKF (15DOF) │ LiDAR Clust │  Hybrid A*   │  Safety Arbiter     │
+│  GPS ENU     │ SORT Tracker │  MPC Planner │  E-Stop (GPIO)     │
+│  Wheel Odom  │ Lane Detect  │  Behavior SM │  Watchdog          │
+│  LiDAR ICP   │ RANSAC Gnd  │  Vel Profile │  Collision Mon      │
+├──────────────┴──────────────┴──────────────┴────────────────────┤
+│   Control: LQR + CAN Bus + PID Motors + Steering Controller     │
 ├─────────────────────────────────────────────────────────────────┤
 │   Tour: Manager + Audio Player + Passenger Display              │
 ├─────────────────────────────────────────────────────────────────┤
