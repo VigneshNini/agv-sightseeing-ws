@@ -1,0 +1,366 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <world name="sightseeing_park">
+
+    <!-- Physics -->
+    <physics name="default_physics" default="true" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1</real_time_factor>
+      <real_time_update_rate>1000</real_time_update_rate>
+    </physics>
+
+    <!-- Lighting -->
+    <light name="sun" type="directional">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 100 0 -0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <light name="ambient" type="ambient">
+      <color>0.4 0.4 0.4 1</color>
+    </light>
+
+    <!-- Ground Plane -->
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>200 200</size>
+            </plane>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1</mu>
+                <mu2>1</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>200 200</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.3 0.5 0.3 1</ambient>
+            <diffuse>0.3 0.5 0.3 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Paths (concrete walkways) -->
+    <model name="main_path_1">
+      <static>true</static>
+      <pose>8 0 0.01 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>60 3 0.02</size></box></geometry>
+          <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+        </visual>
+        <collision name="collision">
+          <geometry><box><size>60 3 0.02</size></box></geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name="path_to_garden">
+      <static>true</static>
+      <pose>10 25 0.01 0 0 1.5708</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>30 2.5 0.02</size></box></geometry>
+          <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+        </visual>
+        <collision name="collision">
+          <geometry><box><size>30 2.5 0.02</size></box></geometry>
+        </collision>
+      </link>
+    </model>
+
+    <!-- Entrance Gate -->
+    <model name="entrance_gate_left">
+      <static>true</static>
+      <pose>-5 3 1.5 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>0.4 0.4 3.0</size></box></geometry>
+          <material><ambient>0.8 0.7 0.5 1</ambient><diffuse>0.8 0.7 0.5 1</diffuse></material>
+        </visual>
+        <collision name="collision">
+          <geometry><box><size>0.4 0.4 3.0</size></box></geometry>
+        </collision>
+        <inertial><mass>500</mass></inertial>
+      </link>
+    </model>
+
+    <model name="entrance_gate_right">
+      <static>true</static>
+      <pose>-5 -3 1.5 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>0.4 0.4 3.0</size></box></geometry>
+          <material><ambient>0.8 0.7 0.5 1</ambient><diffuse>0.8 0.7 0.5 1</diffuse></material>
+        </visual>
+        <collision name="collision">
+          <geometry><box><size>0.4 0.4 3.0</size></box></geometry>
+        </collision>
+        <inertial><mass>500</mass></inertial>
+      </link>
+    </model>
+
+    <!-- Historic Fountain -->
+    <model name="fountain_base">
+      <static>true</static>
+      <pose>15 20 0.3 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><cylinder><radius>3.0</radius><length>0.6</length></cylinder></geometry>
+          <material><ambient>0.7 0.7 0.8 1</ambient><diffuse>0.7 0.7 0.8 1</diffuse></material>
+        </visual>
+        <collision name="collision">
+          <geometry><cylinder><radius>3.0</radius><length>0.6</length></cylinder></geometry>
+        </collision>
+        <inertial><mass>2000</mass></inertial>
+      </link>
+    </model>
+
+    <model name="fountain_center">
+      <static>true</static>
+      <pose>15 20 1.0 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><cylinder><radius>0.3</radius><length>2.0</length></cylinder></geometry>
+          <material><ambient>0.6 0.7 0.8 1</ambient><diffuse>0.6 0.7 0.8 1</diffuse></material>
+        </visual>
+        <collision name="collision">
+          <geometry><cylinder><radius>0.3</radius><length>2.0</length></cylinder></geometry>
+        </collision>
+        <inertial><mass>200</mass></inertial>
+      </link>
+    </model>
+
+    <!-- Art Museum Building -->
+    <model name="art_museum">
+      <static>true</static>
+      <pose>30 50 4.0 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>20 15 8.0</size></box></geometry>
+          <material><ambient>0.85 0.82 0.78 1</ambient><diffuse>0.85 0.82 0.78 1</diffuse></material>
+        </visual>
+        <collision name="collision">
+          <geometry><box><size>20 15 8.0</size></box></geometry>
+        </collision>
+        <inertial><mass>50000</mass></inertial>
+      </link>
+    </model>
+
+    <!-- Trees (scattered throughout park) -->
+    <xacro:macro name="tree" params="name px py" xmlns:xacro="http://www.ros.org/wiki/xacro">
+    </xacro:macro>
+
+    <model name="tree_01">
+      <static>true</static><pose>5 10 1.5 0 0 0</pose>
+      <link name="trunk"><visual name="v"><geometry><cylinder><radius>0.2</radius><length>3.0</length></cylinder></geometry><material><ambient>0.4 0.25 0.1 1</ambient></material></visual><collision name="c"><geometry><cylinder><radius>0.2</radius><length>3.0</length></cylinder></geometry></collision><inertial><mass>100</mass></inertial></link>
+    </model>
+    <model name="tree_01_crown">
+      <static>true</static><pose>5 10 4.0 0 0 0</pose>
+      <link name="crown"><visual name="v"><geometry><sphere><radius>2.0</radius></sphere></geometry><material><ambient>0.1 0.5 0.1 1</ambient></material></visual><collision name="c"><geometry><sphere><radius>2.0</radius></sphere></collision><inertial><mass>50</mass></inertial></link>
+    </model>
+
+    <model name="tree_02">
+      <static>true</static><pose>-8 15 1.5 0 0 0</pose>
+      <link name="trunk"><visual name="v"><geometry><cylinder><radius>0.2</radius><length>3.0</length></cylinder></geometry><material><ambient>0.4 0.25 0.1 1</ambient></material></visual><collision name="c"><geometry><cylinder><radius>0.2</radius><length>3.0</length></cylinder></geometry></collision><inertial><mass>100</mass></inertial></link>
+    </model>
+    <model name="tree_02_crown">
+      <static>true</static><pose>-8 15 4.0 0 0 0</pose>
+      <link name="crown"><visual name="v"><geometry><sphere><radius>2.0</radius></sphere></geometry><material><ambient>0.1 0.5 0.1 1</ambient></material></visual><collision name="c"><geometry><sphere><radius>2.0</radius></sphere></collision><inertial><mass>50</mass></inertial></link>
+    </model>
+
+    <model name="tree_03">
+      <static>true</static><pose>25 8 1.5 0 0 0</pose>
+      <link name="trunk"><visual name="v"><geometry><cylinder><radius>0.25</radius><length>4.0</length></cylinder></geometry><material><ambient>0.4 0.25 0.1 1</ambient></material></visual><collision name="c"><geometry><cylinder><radius>0.25</radius><length>4.0</length></cylinder></geometry></collision><inertial><mass>150</mass></inertial></link>
+    </model>
+    <model name="tree_03_crown">
+      <static>true</static><pose>25 8 5.5 0 0 0</pose>
+      <link name="crown"><visual name="v"><geometry><sphere><radius>2.5</radius></sphere></geometry><material><ambient>0.1 0.55 0.1 1</ambient></material></visual><collision name="c"><geometry><sphere><radius>2.5</radius></sphere></collision><inertial><mass>80</mass></inertial></link>
+    </model>
+
+    <model name="tree_04">
+      <static>true</static><pose>45 15 1.5 0 0 0</pose>
+      <link name="trunk"><visual name="v"><geometry><cylinder><radius>0.2</radius><length>3.5</length></cylinder></geometry><material><ambient>0.4 0.25 0.1 1</ambient></material></visual><collision name="c"><geometry><cylinder><radius>0.2</radius><length>3.5</length></cylinder></geometry></collision><inertial><mass>120</mass></inertial></link>
+    </model>
+    <model name="tree_04_crown">
+      <static>true</static><pose>45 15 4.8 0 0 0</pose>
+      <link name="crown"><visual name="v"><geometry><sphere><radius>2.2</radius></sphere></geometry><material><ambient>0.1 0.5 0.1 1</ambient></material></visual><collision name="c"><geometry><sphere><radius>2.2</radius></sphere></collision><inertial><mass>60</mass></inertial></link>
+    </model>
+
+    <!-- Viewpoint Terrace -->
+    <model name="viewpoint_terrace">
+      <static>true</static>
+      <pose>50 30 0.5 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>10 8 1.0</size></box></geometry>
+          <material><ambient>0.6 0.6 0.6 1</ambient><diffuse>0.6 0.6 0.6 1</diffuse></material>
+        </visual>
+        <collision name="collision">
+          <geometry><box><size>10 8 1.0</size></box></geometry>
+        </collision>
+        <inertial><mass>5000</mass></inertial>
+      </link>
+    </model>
+
+    <!-- Tour Stop Markers -->
+    <model name="stop_marker_0">
+      <static>true</static>
+      <pose>0 0 0.75 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><cylinder><radius>0.1</radius><length>1.5</length></cylinder></geometry>
+          <material><ambient>1.0 0.7 0.0 1</ambient><diffuse>1.0 0.7 0.0 1</diffuse></material>
+        </visual>
+        <inertial><mass>2</mass></inertial>
+      </link>
+    </model>
+
+    <model name="stop_marker_1">
+      <static>true</static>
+      <pose>15 20 0.75 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><cylinder><radius>0.1</radius><length>1.5</length></cylinder></geometry>
+          <material><ambient>1.0 0.7 0.0 1</ambient><diffuse>1.0 0.7 0.0 1</diffuse></material>
+        </visual>
+        <inertial><mass>2</mass></inertial>
+      </link>
+    </model>
+
+    <model name="stop_marker_2">
+      <static>true</static>
+      <pose>10 40 0.75 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><cylinder><radius>0.1</radius><length>1.5</length></cylinder></geometry>
+          <material><ambient>1.0 0.7 0.0 1</ambient><diffuse>1.0 0.7 0.0 1</diffuse></material>
+        </visual>
+        <inertial><mass>2</mass></inertial>
+      </link>
+    </model>
+
+    <model name="stop_marker_3">
+      <static>true</static>
+      <pose>30 50 0.75 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><cylinder><radius>0.1</radius><length>1.5</length></cylinder></geometry>
+          <material><ambient>1.0 0.7 0.0 1</ambient><diffuse>1.0 0.7 0.0 1</diffuse></material>
+        </visual>
+        <inertial><mass>2</mass></inertial>
+      </link>
+    </model>
+
+    <model name="stop_marker_4">
+      <static>true</static>
+      <pose>50 30 0.75 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><cylinder><radius>0.1</radius><length>1.5</length></cylinder></geometry>
+          <material><ambient>1.0 0.7 0.0 1</ambient><diffuse>1.0 0.7 0.0 1</diffuse></material>
+        </visual>
+        <inertial><mass>2</mass></inertial>
+      </link>
+    </model>
+
+    <!-- Park Boundary Walls -->
+    <model name="wall_north">
+      <static>true</static>
+      <pose>30 70 1.0 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>120 0.4 2.0</size></box></geometry>
+          <material><ambient>0.6 0.55 0.5 1</ambient></material>
+        </visual>
+        <collision name="collision">
+          <geometry><box><size>120 0.4 2.0</size></box></geometry>
+        </collision>
+        <inertial><mass>5000</mass></inertial>
+      </link>
+    </model>
+
+    <model name="wall_south">
+      <static>true</static>
+      <pose>30 -10 1.0 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>120 0.4 2.0</size></box></geometry>
+          <material><ambient>0.6 0.55 0.5 1</ambient></material>
+        </visual>
+        <collision name="collision">
+          <geometry><box><size>120 0.4 2.0</size></box></geometry>
+        </collision>
+        <inertial><mass>5000</mass></inertial>
+      </link>
+    </model>
+
+    <model name="wall_west">
+      <static>true</static>
+      <pose>-30 30 1.0 0 0 1.5708</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>80 0.4 2.0</size></box></geometry>
+          <material><ambient>0.6 0.55 0.5 1</ambient></material>
+        </visual>
+        <collision name="collision">
+          <geometry><box><size>80 0.4 2.0</size></box></geometry>
+        </collision>
+        <inertial><mass>5000</mass></inertial>
+      </link>
+    </model>
+
+    <model name="wall_east">
+      <static>true</static>
+      <pose>90 30 1.0 0 0 1.5708</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>80 0.4 2.0</size></box></geometry>
+          <material><ambient>0.6 0.55 0.5 1</ambient></material>
+        </visual>
+        <collision name="collision">
+          <geometry><box><size>80 0.4 2.0</size></box></geometry>
+        </collision>
+        <inertial><mass>5000</mass></inertial>
+      </link>
+    </model>
+
+    <!-- Rose Garden Area (decorative boxes) -->
+    <model name="rose_garden_border">
+      <static>true</static>
+      <pose>10 40 0.2 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>8 8 0.4</size></box></geometry>
+          <material><ambient>0.15 0.5 0.15 1</ambient><diffuse>0.15 0.5 0.15 1</diffuse></material>
+        </visual>
+        <collision name="c"><geometry><box><size>8 8 0.4</size></box></geometry></collision>
+        <inertial><mass>500</mass></inertial>
+      </link>
+    </model>
+
+  </world>
+</sdf>

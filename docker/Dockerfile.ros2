@@ -1,0 +1,34 @@
+# Multi-stage ROS 2 Humble Dockerfile for AGV Sightseeing Vehicle
+FROM ros:humble-ros-base AS base
+
+# System dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends     python3-pip     python3-numpy     python3-scipy     python3-yaml     ros-humble-tf2-ros     ros-humble-tf2-geometry-msgs     ros-humble-nav-msgs     ros-humble-sensor-msgs     ros-humble-geometry-msgs     ros-humble-cv-bridge     ros-humble-launch-ros     ros-humble-robot-state-publisher     && rm -rf /var/lib/apt/lists/*
+
+# Python dependencies
+RUN pip3 install --no-cache-dir websockets scipy numpy pyyaml
+
+# Build stage
+FROM base AS builder
+
+WORKDIR /ros2_ws
+
+COPY src/ src/
+
+RUN . /opt/ros/humble/setup.sh &&     colcon build       --symlink-install       --cmake-args -DCMAKE_BUILD_TYPE=Release     && rm -rf build/
+
+# Runtime stage
+FROM base AS runtime
+
+WORKDIR /ros2_ws
+
+COPY --from=builder /ros2_ws/install install/
+COPY --from=builder /ros2_ws/src src/
+
+# Create directories
+RUN mkdir -p /var/log/agv /opt/agv/audio /opt/agv/maps
+
+# Entrypoint
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["bash"]

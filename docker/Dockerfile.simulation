@@ -1,0 +1,16 @@
+# ROS 2 Humble + Gazebo simulation Dockerfile
+FROM osrf/ros:humble-desktop AS simulation
+
+RUN apt-get update && apt-get install -y --no-install-recommends     gazebo     ros-humble-gazebo-ros     ros-humble-gazebo-ros-pkgs     ros-humble-gazebo-plugins     python3-pip     python3-numpy     python3-scipy     python3-yaml     ros-humble-tf2-ros     ros-humble-nav-msgs     ros-humble-sensor-msgs     ros-humble-robot-state-publisher     ros-humble-xacro     ros-humble-launch-ros     && rm -rf /var/lib/apt/lists/*
+
+RUN pip3 install --no-cache-dir websockets scipy numpy pyyaml
+
+WORKDIR /ros2_ws
+COPY src/ src/
+
+RUN . /opt/ros/humble/setup.sh &&     colcon build --symlink-install     && rm -rf build/
+
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["ros2", "launch", "agv_bringup", "agv_simulation.launch.py"]

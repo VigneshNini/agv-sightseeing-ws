@@ -1,0 +1,92 @@
+/**:
+  ros__parameters:
+    use_sim_time: false
+
+ukf_localization:
+  ros__parameters:
+    process_noise_position: 0.05
+    process_noise_velocity: 0.1
+    process_noise_orientation: 0.01
+    measurement_noise_gps: 0.5
+    measurement_noise_imu: 0.01
+    frequency: 50.0
+    sensor_timeout: 1.0
+
+gps_converter:
+  ros__parameters:
+    datum_latitude: 13.0827
+    datum_longitude: 80.2707
+    datum_altitude: 0.0
+    topic_in: /fix
+    topic_out: /agv/gps_enu
+
+wheel_odometry:
+  ros__parameters:
+    wheel_radius: 0.25
+    wheelbase: 1.2
+    track_width: 0.8
+    encoder_resolution: 4096
+    publish_rate: 50.0
+
+lidar_obstacle_detector:
+  ros__parameters:
+    max_range: 30.0
+    min_range: 0.3
+    ground_removal_height: -0.3
+    cluster_tolerance: 0.5
+    min_cluster_size: 10
+    max_cluster_size: 5000
+    voxel_size: 0.1
+
+object_tracker:
+  ros__parameters:
+    max_age: 5
+    min_hits: 3
+    iou_threshold: 0.3
+
+hybrid_astar_planner:
+  ros__parameters:
+    vehicle_length: 2.0
+    vehicle_width: 1.0
+    wheelbase: 1.2
+    max_steering_angle: 0.6
+    step_size: 0.5
+    turn_penalty: 1.5
+    reverse_penalty: 5.0
+    obstacle_clearance: 0.5
+
+mpc_local_planner:
+  ros__parameters:
+    horizon_steps: 20
+    dt: 0.1
+    max_speed: 2.5
+    min_speed: 0.0
+    max_steering: 0.6
+    max_steering_rate: 0.3
+    max_accel: 1.5
+    max_decel: 2.0
+    weight_tracking: 10.0
+    weight_speed: 1.0
+    weight_steering: 0.5
+    weight_obstacle: 100.0
+
+safety_arbiter:
+  ros__parameters:
+    emergency_stop_distance: 0.5
+    warning_distance: 2.0
+    caution_distance: 5.0
+    max_speed_caution: 1.0
+    watchdog_timeout: 2.0
+
+tour_manager:
+  ros__parameters:
+    tour_config_file: ""
+    default_dwell_time: 30.0
+    arrival_threshold: 1.5
+    loop_tour: false
+
+web_bridge:
+  ros__parameters:
+    host: "0.0.0.0"
+    port: 9090
+    publish_rate: 10.0

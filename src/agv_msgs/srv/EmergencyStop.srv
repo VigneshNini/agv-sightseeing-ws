@@ -1,0 +1,5 @@
+bool activate
+string reason
+---
+bool success
+string message

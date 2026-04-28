@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AGV Sightseeing Vehicle Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>🚐 AGV Sightseeing Vehicle Dashboard</h1>
+    <div id="connection-status" class="status-badge disconnected">● DISCONNECTED</div>
+  </header>
+
+  <div class="dashboard-grid">
+    <!-- Left Panel: Status Cards -->
+    <div class="panel status-panel">
+      <h2>Vehicle Status</h2>
+
+      <div class="status-card">
+        <div class="card-title">Mode</div>
+        <div id="mode-display" class="card-value mode-idle">IDLE</div>
+      </div>
+
+      <div class="status-card">
+        <div class="card-title">Safety Level</div>
+        <div id="safety-display" class="card-value safety-safe">SAFE</div>
+      </div>
+
+      <div class="status-card">
+        <div class="card-title">Battery</div>
+        <div class="battery-container">
+          <div class="battery-bar">
+            <div id="battery-fill" class="battery-fill" style="width:100%"></div>
+          </div>
+          <div id="battery-text" class="card-value">100%</div>
+        </div>
+      </div>
+
+      <div class="status-card">
+        <div class="card-title">Speed</div>
+        <div class="gauge-container">
+          <canvas id="speed-gauge" width="120" height="80"></canvas>
+          <div id="speed-text" class="card-value">0.0 m/s</div>
+        </div>
+      </div>
+
+      <div class="status-card">
+        <div class="card-title">Heading</div>
+        <div id="heading-display" class="card-value">0.0°</div>
+      </div>
+
+      <div class="status-card">
+        <div class="card-title">System Status</div>
+        <div id="system-status" class="card-value">OK</div>
+      </div>
+    </div>
+
+    <!-- Center Panel: Map View -->
+    <div class="panel map-panel">
+      <h2>Map View</h2>
+      <canvas id="map-canvas" width="500" height="450"></canvas>
+      <div class="map-legend">
+        <span class="legend-item"><span class="dot blue"></span> AGV</span>
+        <span class="legend-item"><span class="dot red"></span> Obstacle</span>
+        <span class="legend-item"><span class="dot green"></span> Tour Stop</span>
+      </div>
+    </div>
+
+    <!-- Right Panel: Tour Info & Controls -->
+    <div class="panel tour-panel">
+      <h2>Tour Information</h2>
+
+      <div class="status-card">
+        <div class="card-title">Current Stop</div>
+        <div id="current-stop" class="card-value">Loading...</div>
+      </div>
+
+      <div id="obstacle-alerts" class="obstacle-alert hidden">
+        <div class="alert-title">⚠️ Obstacle Alerts</div>
+        <div id="obstacle-list"></div>
+      </div>
+
+      <div class="status-card">
+        <div class="card-title">GPS Position</div>
+        <div id="gps-display" class="card-value small">0.0, 0.0</div>
+      </div>
+
+      <div class="status-card">
+        <div class="card-title">Local Position</div>
+        <div id="position-display" class="card-value small">X: 0.0m, Y: 0.0m</div>
+      </div>
+
+      <h2>Controls</h2>
+
+      <button id="start-tour-btn" class="btn btn-primary" onclick="startTour()">▶ Start Tour</button>
+      <button id="stop-tour-btn" class="btn btn-secondary" onclick="stopTour()">⏹ Stop Tour</button>
+      <button id="estop-btn" class="btn btn-danger" onclick="toggleEStop()">🛑 EMERGENCY STOP</button>
+
+      <div id="emergency-indicator" class="emergency-indicator hidden">
+        🚨 EMERGENCY STOP ACTIVE
+      </div>
+
+      <h2>Telemetry Log</h2>
+      <div id="log-container" class="log-container">
+        <div class="log-entry">Dashboard initialized...</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

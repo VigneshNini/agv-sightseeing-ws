@@ -1,0 +1,10 @@
+std_msgs/Header header
+float32 battery_percent
+float32 speed_mps
+float32 heading_deg
+string mode
+string current_stop
+bool emergency_stop
+float32 latitude
+float32 longitude
+string system_status
