@@ -12,8 +12,8 @@
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>agv_msgs</exec_depend>
   <exec_depend>tf2_ros</exec_depend>
-  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_python</buildtool_depend>
   <export>
-    <build_type>ament_cmake</build_type>
+    <build_type>ament_python</build_type>
   </export>
 </package>
