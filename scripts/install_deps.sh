@@ -186,6 +186,17 @@ step "4/9" "Installing Python dependencies"
 
 pip3 install --upgrade pip setuptools wheel 2>&1 >> "$LOG_FILE"
 
+# Install ROS-required base packages first to avoid dependency resolver conflicts.
+# pyyaml   — required by launch-ros and generate-parameter-library-py
+# jinja2   — required by generate-parameter-library-py
+# typeguard — required by generate-parameter-library-py
+pip3 install \
+    pyyaml \
+    jinja2 \
+    typeguard \
+    2>&1 >> "$LOG_FILE"
+ok "ROS Python base deps (pyyaml, jinja2, typeguard) installed"
+
 pip3 install \
     "numpy>=1.21,<2.0" \
     scipy \
@@ -203,7 +214,6 @@ pip3 install \
     websockets \
     aiohttp \
     aiofiles \
-    pyyaml \
     transforms3d \
     pyaudio \
     pydub \
@@ -220,6 +230,8 @@ python3 -c "import casadi; print('    version:', casadi.__version__)" 2>/dev/nul
 python3 -c "import numpy" 2>/dev/null && ok "NumPy OK"
 python3 -c "import scipy" 2>/dev/null && ok "SciPy OK"
 python3 -c "import cv2"   2>/dev/null && ok "OpenCV OK"
+python3 -c "import yaml"  2>/dev/null && ok "PyYAML OK"
+python3 -c "import jinja2" 2>/dev/null && ok "Jinja2 OK"
 
 # ── 5. Docker ────────────────────────────────────────────────────────────────
 step "5/9" "Installing Docker + Docker Compose"
@@ -318,12 +330,15 @@ step "9/9" "Verifying installation"
 
 echo ""
 echo -e "  ${BOLD}Component Status:${NC}"
-printf "  %-28s" "Ubuntu:";  lsb_release -d | cut -f2
-printf "  %-28s" "ROS 2:";   ros2 --version 2>/dev/null || echo "NOT FOUND"
-printf "  %-28s" "Python:";  python3 --version
-printf "  %-28s" "CasADi:";  python3 -c "import casadi; print(casadi.__version__)" 2>/dev/null || echo "NOT FOUND"
-printf "  %-28s" "OpenCV:";  python3 -c "import cv2; print(cv2.__version__)" 2>/dev/null || echo "NOT FOUND"
-printf "  %-28s" "Docker:";  docker --version 2>/dev/null || echo "NOT FOUND"
+printf "  %-28s" "Ubuntu:";    lsb_release -d | cut -f2
+printf "  %-28s" "ROS 2:";     ros2 --version 2>/dev/null || echo "NOT FOUND"
+printf "  %-28s" "Python:";    python3 --version
+printf "  %-28s" "CasADi:";    python3 -c "import casadi; print(casadi.__version__)" 2>/dev/null || echo "NOT FOUND"
+printf "  %-28s" "OpenCV:";    python3 -c "import cv2; print(cv2.__version__)" 2>/dev/null || echo "NOT FOUND"
+printf "  %-28s" "PyYAML:";    python3 -c "import yaml; print(yaml.__version__)" 2>/dev/null || echo "NOT FOUND"
+printf "  %-28s" "Jinja2:";    python3 -c "import jinja2; print(jinja2.__version__)" 2>/dev/null || echo "NOT FOUND"
+printf "  %-28s" "typeguard:"; python3 -c "import typeguard; print(typeguard.__version__)" 2>/dev/null || echo "NOT FOUND"
+printf "  %-28s" "Docker:";    docker --version 2>/dev/null || echo "NOT FOUND"
 
 echo ""
 echo -e "  ${BOLD}AGV Packages:${NC}"
