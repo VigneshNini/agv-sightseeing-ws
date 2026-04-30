@@ -6,9 +6,12 @@
 #    chmod +x install_deps.sh
 #    ./install_deps.sh
 # =============================================================================
-set -euo pipefail
+set -eo pipefail
+# Note: -u (unbound variable check) is intentionally omitted at the top level
+# because ROS 2 setup scripts reference variables before defining them.
+# We re-enable it after all sourcing is done.
 
-# ── Colours ───────────────────────────────────────────────────────────────────
+# ── Colours ──────────────────────────────────────────────────────────────────
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
 CYAN='\033[0;36m'; BOLD='\033[1m'; NC='\033[0m'
 
@@ -31,7 +34,7 @@ echo "  Log file: $LOG_FILE"
 echo "  Workspace: $WORKSPACE_DIR"
 echo ""
 
-# ── Pre-flight checks ─────────────────────────────────────────────────────────
+# ── Pre-flight checks ────────────────────────────────────────────────────────
 step "0/9" "Pre-flight checks"
 
 # Ubuntu version check
@@ -115,12 +118,17 @@ else
     ok "ROS 2 Humble installed"
 fi
 
+# ROS setup scripts reference variables before defining them (e.g. AMENT_PYTHON_EXECUTABLE).
+# Temporarily disable -u to prevent 'unbound variable' crash.
+set +u
 source /opt/ros/humble/setup.bash
+set -u
 
 if ! grep -q "source /opt/ros/humble/setup.bash" ~/.bashrc; then
     echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
     ok "Added ROS 2 to ~/.bashrc"
 fi
+ok "ROS 2 Humble sourced"
 
 # ── 3. ROS 2 Packages ────────────────────────────────────────────────────────
 step "3/9" "Installing ROS 2 packages"
@@ -213,7 +221,7 @@ python3 -c "import numpy" 2>/dev/null && ok "NumPy OK"
 python3 -c "import scipy" 2>/dev/null && ok "SciPy OK"
 python3 -c "import cv2"   2>/dev/null && ok "OpenCV OK"
 
-# ── 5. Docker ─────────────────────────────────────────────────────────────────
+# ── 5. Docker ────────────────────────────────────────────────────────────────
 step "5/9" "Installing Docker + Docker Compose"
 
 if command -v docker &>/dev/null; then
@@ -230,7 +238,7 @@ if ! docker compose version &>/dev/null 2>&1; then
 fi
 ok "Docker Compose OK"
 
-# ── 6. CAN Bus ────────────────────────────────────────────────────────────────
+# ── 6. CAN Bus ───────────────────────────────────────────────────────────────
 step "6/9" "Configuring CAN bus"
 
 for mod in can can_raw can_dev vcan; do
@@ -287,7 +295,9 @@ fi
 step "8/9" "Building AGV workspace"
 
 cd "$WORKSPACE_DIR"
+set +u
 source /opt/ros/humble/setup.bash
+set -u
 
 colcon build \
     --symlink-install \
@@ -298,10 +308,12 @@ SETUP_LINE="source $WORKSPACE_DIR/install/setup.bash"
 if ! grep -qF "$SETUP_LINE" ~/.bashrc; then
     echo "$SETUP_LINE" >> ~/.bashrc
 fi
+set +u
 source "$WORKSPACE_DIR/install/setup.bash" 2>/dev/null || true
+set -u
 ok "Workspace built and sourced"
 
-# ── 9. Verify ─────────────────────────────────────────────────────────────────
+# ── 9. Verify ────────────────────────────────────────────────────────────────
 step "9/9" "Verifying installation"
 
 echo ""
@@ -315,8 +327,10 @@ printf "  %-28s" "Docker:";  docker --version 2>/dev/null || echo "NOT FOUND"
 
 echo ""
 echo -e "  ${BOLD}AGV Packages:${NC}"
+set +u
 source /opt/ros/humble/setup.bash 2>/dev/null
 source "$WORKSPACE_DIR/install/setup.bash" 2>/dev/null || true
+set -u
 if ros2 pkg list 2>/dev/null | grep -q agv; then
     ros2 pkg list 2>/dev/null | grep agv | while read pkg; do
         echo -e "  ${GREEN}✔${NC} $pkg"
@@ -325,7 +339,7 @@ else
     warn "AGV packages not found — check $LOG_FILE"
 fi
 
-# ── Done ──────────────────────────────────────────────────────────────────────
+# ── Done ─────────────────────────────────────────────────────────────────────
 echo ""
 echo -e "${GREEN}${BOLD}"
 echo "╔══════════════════════════════════════════════════════╗"
